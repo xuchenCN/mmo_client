@@ -36,13 +36,15 @@ namespace TestProto
             using (MemoryStream stream = new MemoryStream())
             {
                 CodedOutputStream os = CodedOutputStream.CreateInstance(stream);
-                //一定要去看它的代码实现，
-                os.WriteMessageNoTag(request);
-                /**
-                * WriteMessageNoTag 等价于 WriteVarint32, WriteByte(byte[])
-                * 也就是：变长消息头 + 消息体
-                */
+				//Body Length
+				os.WriteRawVarint32((uint)request.SerializedSize);
 
+				//MessageId
+				os.WriteRawVarint32((uint)0x01);
+
+				//Body
+				request.WriteTo(os);
+               
                 os.Flush();
 
                 byte[] data = stream.ToArray();
@@ -118,6 +120,8 @@ namespace TestProto
 
                         while(!stream.IsAtEnd)
                         {
+							long markPos = stream.Position;
+
                             int bodySize = (int)stream.ReadRawVarint32();
                             Console.WriteLine("body size " + bodySize);
                             //Validate message correct
@@ -127,17 +131,27 @@ namespace TestProto
                                 continue;
                             }
 
+							int messageId = (int)stream.ReadRawVarint32();
+
                             if(bodySize <= (totalMessageSize - stream.Position))
                             {
                                 byte[] body = stream.ReadRawBytes(bodySize);
 
-                                UserLoginResponse response = UserLoginResponse.ParseFrom(body);
+								IMessageLite protoMes = null;
 
-                                Console.WriteLine("response " + response);
+								switch (messageId) {
+									case 2:
+										protoMes = UserLoginResponse.ParseFrom(body);
+
+										break;
+								}
+
+								Console.WriteLine("response " + protoMes);
+
                             } else
                             {
                                 //Rest data not enough
-                                long remainSize = totalMessageSize - stream.Position;
+                                long remainSize = totalMessageSize - markPos;
                                 byte[] restData = stream.ReadRawBytes((int)remainSize);
                                 fullData = restData;
                                 break;
@@ -145,8 +159,6 @@ namespace TestProto
 
 
                         }
-
-                       
 
 
                     }
