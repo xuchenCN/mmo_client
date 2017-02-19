@@ -50,10 +50,16 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BlockingQueue.cs" />
     <Compile Include="Class1.cs" />
     <Compile Include="ClientGate.cs" />
+    <Compile Include="GameClient.cs" />
+    <Compile Include="GameClientService.cs" />
+    <Compile Include="IMessageCallback.cs" />
+    <Compile Include="MessageIdentify.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="ChannelMessage.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
