@@ -15,7 +15,7 @@ namespace TestProto
       static GameClient gameClient = new GameClient("127.0.0.1", 24444, new TestCallback());
       public static void Main(string[] args)
       {
-         
+
          gameClient.Start();
 
          UserLoginRequest request = UserLoginRequest.CreateBuilder().SetUname("tester1").SetUpwd("tester1").Build();
