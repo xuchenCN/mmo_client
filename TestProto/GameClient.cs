@@ -15,38 +15,74 @@ namespace TestProto
       private string host;
       private int port;
       private TcpClient channel;
-      private IMessageCallback messageCallback;
+      private AccountCallback accountCallback;
       private IPEndPoint ip;
       private GameClientService service;
       private bool shouldRun;
       private Thread coreThread;
+      private static readonly Object _lock = new Object();
+      private static GameClient instance;
 
-      public GameClient(string host, int port, IMessageCallback messageCallback)
+      public static GameClient getInstance()
+      {
+         if (instance == null)
+         {
+            lock(_lock) 
+            {
+               if (instance == null)
+               {
+                  instance = new GameClient();
+               }
+            }
+         }
+         return instance;
+      }
+
+
+      private GameClient()
+      {
+         
+      }
+
+      public void addAccountListener(AccountCallback accountCallback)
+      {
+         this.accountCallback = accountCallback;
+      }
+
+      public void addTerrainListener(TerrainCallback callback)
+      {
+         this.service.addTerrainListener(callback);
+      }
+
+      public void Start(string host, int port)
       {
          this.host = host;
          this.port = port;
-         this.messageCallback = messageCallback;
+         //this.messageCallback = messageCallback;
          channel = new TcpClient();
          IPAddress ipAddress;
          if (!IPAddress.TryParse(host, out ipAddress))
          {
             ipAddress = Dns.GetHostEntry(host).AddressList[0];
-           
-         } else
-      
-         ip = new IPEndPoint(ipAddress, port);
-         service = new GameClientService(this, messageCallback);
+
+         }
+         else {
+
+            ip = new IPEndPoint(ipAddress, port);
+         }
+         this.service = new GameClientService(this);
          coreThread = new Thread(new ThreadStart(ChannelCoreHandle));
          coreThread.Name = "Client-Network-Core-Thread";
          coreThread.IsBackground = true;
-      }
 
-      public void Start()
-      {
          this.channel.Connect(ip);
          this.service.Start();
          shouldRun = true;
          coreThread.Start();
+      }
+
+      public bool isRunning() {
+         return this.shouldRun;
       }
 
       public TcpClient GetChannel()
@@ -71,6 +107,12 @@ namespace TestProto
 
       private void SendMessage(uint messageId, IMessageLite message)
       {
+
+         if (!this.isRunning())
+         {
+            throw new Exception("Client not start !");
+         }
+
          using (MemoryStream stream = new MemoryStream())
          {
             CodedOutputStream os = CodedOutputStream.CreateInstance(stream);
@@ -182,10 +224,10 @@ namespace TestProto
                               switch (messageId)
                               {
                                  case (int)MessageRegistry.USERLOGINRESPONSE:
-                                   this.messageCallback.OnLoginResponse(UserLoginResponse.ParseFrom(body));
+                                    this.accountCallback.OnLoginResponse(UserLoginResponse.ParseFrom(body));
                                     break;
                                  case (int)MessageRegistry.CHARACTERENTERRESPONSE:
-                                    this.messageCallback.OnEnterResponse(ClientCharacterEnterEvent.ParseFrom(body));
+                                    this.accountCallback.OnEnterResponse(ClientCharacterEnterEvent.ParseFrom(body));
                                     break;
                                  default:
                                     ChannelMessage channelMessage = new ChannelMessage((MessageRegistry)messageId, body);

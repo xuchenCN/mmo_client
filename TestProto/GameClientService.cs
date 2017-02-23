@@ -12,12 +12,12 @@ namespace TestProto
       private GameClient client;
       private volatile bool shouldRun;
       private Thread[] threads;
-      private IMessageCallback callback;
+      private TerrainCallback callback;
 
-      public GameClientService(GameClient client, IMessageCallback callback)
+      public GameClientService(GameClient client)
       {
          this.client = client;
-         this.callback = callback;
+         //this.callback = callback;
          this.blockingQueue = new BlockingQueue<ChannelMessage>(1024);
          int nThread = Math.Max(2, Environment.ProcessorCount / 2);
          threads = new Thread[nThread];
@@ -28,6 +28,11 @@ namespace TestProto
             thread.IsBackground = true;
             threads[i] = thread;
          }
+      }
+
+      public void addTerrainListener(TerrainCallback callback) 
+      {
+         this.callback = callback;
       }
 
       public void Start()

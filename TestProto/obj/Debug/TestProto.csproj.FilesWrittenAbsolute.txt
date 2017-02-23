@@ -1,0 +1,9 @@
+/Users/chenxu/git/mmo_client/TestProto/obj/Debug/.NETFramework,Version=v4.0.AssemblyAttribute.cs
+/Users/chenxu/git/mmo_client/TestProto/bin/Debug/TestProto.exe.config
+/Users/chenxu/git/mmo_client/TestProto/bin/Debug/TestProto.exe.mdb
+/Users/chenxu/git/mmo_client/TestProto/bin/Debug/TestProto.exe
+/Users/chenxu/git/mmo_client/TestProto/obj/Debug/TestProto.exe
+/Users/chenxu/git/mmo_client/TestProto/obj/Debug/TestProto.exe.mdb
+/Users/chenxu/git/mmo_client/TestProto/bin/Debug/Google.ProtocolBuffers.dll
+/Users/chenxu/git/mmo_client/TestProto/bin/Debug/Google.ProtocolBuffers.Serialization.dll
+/Users/chenxu/git/mmo_client/TestProto/obj/Debug/.NETFramework,Version=v4.0,Profile=Client.AssemblyAttribute.cs

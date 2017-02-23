@@ -12,11 +12,15 @@ namespace TestProto
 {
    class Program
    {
-      static GameClient gameClient = new GameClient("127.0.0.1", 24444, new TestCallback());
+      //static GameClient gameClient = new GameClient("127.0.0.1", 24444, new TestCallback());
       public static void Main(string[] args)
       {
+         GameClient gameClient = GameClient.getInstance();
 
-         gameClient.Start();
+         gameClient.Start("127.0.0.1", 24444);
+
+         gameClient.addAccountListener(new TestAcountCallback());
+         gameClient.addTerrainListener(new TestTerrainCallback());
 
          UserLoginRequest request = UserLoginRequest.CreateBuilder().SetUname("tester1").SetUpwd("tester1").Build();
 
@@ -25,45 +29,50 @@ namespace TestProto
          Console.ReadKey();
       }
 
-      class TestCallback : IMessageCallback
+      class TestTerrainCallback : TerrainCallback
       {
-        
-         public void OnCharacterCreate(ClientCharacterCreateEvent clientCharacterCreateEvent)
+         public override void OnCharacterCreate(ClientCharacterCreateEvent clientCharacterCreateEvent)
          {
             Console.WriteLine(clientCharacterCreateEvent);
          }
 
-         public void OnEnterResponse(ClientCharacterEnterEvent response)
-         {
-            Console.WriteLine(response);
-         }
-
-         public void OnItemCreate(ClientItemCreateEvent clientItemCreateEvent)
+         public override void OnItemCreate(ClientItemCreateEvent clientItemCreateEvent)
          {
             Console.WriteLine(clientItemCreateEvent);
          }
 
-         public void OnItemDestroy(ClientItemDestroyEvent clientItemDestroyEvent)
+         public override void OnItemDestroy(ClientItemDestroyEvent clientItemDestroyEvent)
          {
             Console.WriteLine(clientItemDestroyEvent);
          }
 
-         public void OnItemMove(ClientItemMoveEvent clientItemMoveEvent)
+         public override void OnItemMove(ClientItemMoveEvent clientItemMoveEvent)
          {
             Console.WriteLine(clientItemMoveEvent);
          }
+      }
 
-         public void OnLoginResponse(UserLoginResponse response)
+      class TestAcountCallback : AccountCallback
+      {
+
+         public override void OnEnterResponse(ClientCharacterEnterEvent response)
          {
             Console.WriteLine(response);
-            if(response.Code == LoginCode.SUC)
+         }
+
+         public override void OnLoginResponse(UserLoginResponse response)
+         {
+            Console.WriteLine(response);
+            if (response.Code == LoginCode.SUC)
             {
                Console.WriteLine(response);
                ClientCharacterEnterRequest request = ClientCharacterEnterRequest.CreateBuilder().SetTicket(response.Ticket).Build();
-               gameClient.CharacterEnter(request);
+               //gameClient.CharacterEnter(request);
             }
          }
       }
+
+
 
       public static void Main__A(string[] args)
       {

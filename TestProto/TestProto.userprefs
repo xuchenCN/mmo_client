@@ -1,0 +1,26 @@
+﻿<Properties StartupConfiguration="{EAC37137-585A-465E-9850-0E40FB3A9040}|Default">
+  <MonoDevelop.Ide.Workbench ActiveDocument="BlockingQueue.cs">
+    <Files>
+      <File FileName="Class1.cs" Line="1" Column="1" />
+      <File FileName="ClientGate.cs" Line="1" Column="1" />
+      <File FileName="Program.cs" Line="29" Column="28" />
+      <File FileName="packages.config" Line="1" Column="1" />
+      <File FileName="TestProto Status" />
+      <File FileName="GameClient.cs" Line="1" Column="7" />
+      <File FileName="GameClientService.cs" Line="66" Column="1" />
+      <File FileName="IMessageCallback.cs" Line="17" Column="85" />
+      <File FileName="App.config" Line="1" Column="1" />
+      <File FileName="MessageIdentify.cs" Line="1" Column="1" />
+      <File FileName="ChannelMessage.cs" Line="1" Column="1" />
+      <File FileName="TerrainCallback.cs" Line="13" Column="5" />
+      <File FileName="AccountCallback.cs" Line="12" Column="8" />
+      <File FileName="BlockingQueue.cs" Line="43" Column="45" />
+    </Files>
+  </MonoDevelop.Ide.Workbench>
+  <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" />
+  <MonoDevelop.Ide.DebuggingService.Breakpoints>
+    <BreakpointStore />
+  </MonoDevelop.Ide.DebuggingService.Breakpoints>
+  <MonoDevelop.Ide.DebuggingService.PinnedWatches />
+  <MonoDevelop.Ide.ItemProperties.TestProto PreferredExecutionTarget="MonoDevelop.Default" />
+</Properties>
