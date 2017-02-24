@@ -19,8 +19,8 @@ namespace TestProto
 
          gameClient.Start("127.0.0.1", 24444);
 
-         gameClient.addAccountListener(new TestAcountCallback());
-         gameClient.addTerrainListener(new TestTerrainCallback());
+         //gameClient.addAccountListener(new TestAcountCallback());
+         //gameClient.addTerrainListener(new TestTerrainCallback());
 
          UserLoginRequest request = UserLoginRequest.CreateBuilder().SetUname("tester1").SetUpwd("tester1").Build();
 

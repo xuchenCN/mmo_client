@@ -9,9 +9,9 @@ namespace TestProto
     class ChannelMessage
     {
         private MessageRegistry messageId;
-        private byte[] body;
+        private IMessageLite body;
 
-        public ChannelMessage(MessageRegistry messageId, byte[] body)
+        public ChannelMessage(MessageRegistry messageId, IMessageLite body)
         {
             this.messageId = messageId;
             this.body = body;
@@ -22,7 +22,7 @@ namespace TestProto
             return this.messageId;
         }
 
-        public byte[] GetBody()
+        public IMessageLite GetBody()
         {
             return body;
         }

@@ -12,10 +12,12 @@ namespace TestProto
 {
    class GameClient
    {
+      private BlockingQueue<ChannelMessage> accountQueue;
+      private BlockingQueue<ChannelMessage> terrainQueue;
       private string host;
       private int port;
       private TcpClient channel;
-      private AccountCallback accountCallback;
+     // private AccountCallback accountCallback;
       private IPEndPoint ip;
       private GameClientService service;
       private bool shouldRun;
@@ -44,15 +46,6 @@ namespace TestProto
          
       }
 
-      public void addAccountListener(AccountCallback accountCallback)
-      {
-         this.accountCallback = accountCallback;
-      }
-
-      public void addTerrainListener(TerrainCallback callback)
-      {
-         this.service.addTerrainListener(callback);
-      }
 
       public void Start(string host, int port)
       {
@@ -70,13 +63,13 @@ namespace TestProto
 
             ip = new IPEndPoint(ipAddress, port);
          }
-         this.service = new GameClientService(this);
+        // this.service = new GameClientService(this);
          coreThread = new Thread(new ThreadStart(ChannelCoreHandle));
          coreThread.Name = "Client-Network-Core-Thread";
          coreThread.IsBackground = true;
 
          this.channel.Connect(ip);
-         this.service.Start();
+        // this.service.Start();
          shouldRun = true;
          coreThread.Start();
       }
@@ -88,6 +81,16 @@ namespace TestProto
       public TcpClient GetChannel()
       {
          return this.channel;
+      }
+
+      public void setAccountQueue(BlockingQueue<ChannelMessage> accountQueue)
+      {
+         this.accountQueue = accountQueue;
+      }
+
+      public void setTerrainQueue(BlockingQueue<ChannelMessage> terrainQueue)
+      {
+         this.terrainQueue = terrainQueue;
       }
 
       public void UserLogin(UserLoginRequest request)
@@ -223,15 +226,51 @@ namespace TestProto
 
                               switch (messageId)
                               {
+                                 
                                  case (int)MessageRegistry.USERLOGINRESPONSE:
-                                    this.accountCallback.OnLoginResponse(UserLoginResponse.ParseFrom(body));
+                                    if (this.accountQueue != null)
+                                    {
+                                       ChannelMessage _channelMessage = new ChannelMessage((MessageRegistry)messageId, UserLoginResponse.ParseFrom(body));
+                                       this.accountQueue.Enqueue(_channelMessage);
+                                    } 
                                     break;
                                  case (int)MessageRegistry.CHARACTERENTERRESPONSE:
-                                    this.accountCallback.OnEnterResponse(ClientCharacterEnterEvent.ParseFrom(body));
+                                    if (this.accountQueue != null)
+                                    {
+                                       ChannelMessage _channelMessage = new ChannelMessage((MessageRegistry)messageId, UserLoginResponse.ParseFrom(body));
+                                       this.accountQueue.Enqueue(_channelMessage);
+                                    }
+                                    break;
+                                 case (int)MessageRegistry.ITEMCREATEEVENT:
+                                    if (this.terrainQueue != null)
+                                    {
+                                       ChannelMessage _channelMessage = new ChannelMessage((MessageRegistry)messageId, ClientItemCreateEvent.ParseFrom(body));
+                                       this.terrainQueue.Enqueue(_channelMessage);
+                                    }
+                                    break;
+                                 case (int)MessageRegistry.ITEMDESTROYEVENT:
+                                    if (this.terrainQueue != null)
+                                    {
+                                       ChannelMessage _channelMessage = new ChannelMessage((MessageRegistry)messageId, ClientItemDestroyEvent.ParseFrom(body));
+                                       this.terrainQueue.Enqueue(_channelMessage);
+                                    }
+                                    break;
+                                 case (int)MessageRegistry.ITEMMOVEEVENT:
+                                    if (this.terrainQueue != null)
+                                    {
+                                       ChannelMessage _channelMessage = new ChannelMessage((MessageRegistry)messageId, ClientItemMoveEvent.ParseFrom(body));
+                                       this.terrainQueue.Enqueue(_channelMessage);
+                                    }
+                                    break;
+                                 case (int)MessageRegistry.CHARACTERCREATEEVENT:
+                                    if (this.terrainQueue != null)
+                                    {
+                                       ChannelMessage _channelMessage = new ChannelMessage((MessageRegistry)messageId, ClientCharacterCreateEvent.ParseFrom(body));
+                                       this.terrainQueue.Enqueue(_channelMessage);
+                                    }
                                     break;
                                  default:
-                                    ChannelMessage channelMessage = new ChannelMessage((MessageRegistry)messageId, body);
-                                    this.service.EnqueueMessage(channelMessage);
+                                    Console.WriteLine("Unknow message Id" + messageId);
                                     break;
                               }
 
