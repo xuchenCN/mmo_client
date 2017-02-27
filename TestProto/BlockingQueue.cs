@@ -6,76 +6,98 @@ using System.Threading;
 
 namespace TestProto
 {
-    class BlockingQueue<T>
-    {
-        private readonly Queue<T> queue = new Queue<T>();
-        private readonly int maxSize;
-        public BlockingQueue(int maxSize) { this.maxSize = maxSize; }
+   class BlockingQueue<T>
+   {
+      private readonly Queue<T> queue = new Queue<T>();
+      private readonly int maxSize;
+      public BlockingQueue(int maxSize) { this.maxSize = maxSize; }
 
-        public void Enqueue(T item)
-        {
-            lock (queue)
+      public void Enqueue(T item)
+      {
+         lock (queue)
+         {
+            while (queue.Count >= maxSize)
             {
-                while (queue.Count >= maxSize)
-                {
-                    Monitor.Wait(queue);
-                }
-                queue.Enqueue(item);
-                if (queue.Count == 1)
-                {
-                    // wake up any blocked dequeue
-                    Monitor.PulseAll(queue);
-                }
+               Monitor.Wait(queue);
             }
-        }
-        public T Dequeue()
-        {
-            lock (queue)
+            queue.Enqueue(item);
+            if (queue.Count == 1)
             {
-                while (queue.Count == 0)
-                {
-                    Monitor.Wait(queue);
-                }
-                T item = queue.Dequeue();
-                if (queue.Count == maxSize - 1)
-                {
-                    // wake up any blocked enqueue
-                    Monitor.PulseAll(queue);
-                }
-                return item;
+               // wake up any blocked dequeue
+               Monitor.PulseAll(queue);
             }
-        }
+         }
+      }
+      public T Dequeue()
+      {
+         lock (queue)
+         {
+            while (queue.Count == 0)
+            {
+               Monitor.Wait(queue);
+            }
+            T item = queue.Dequeue();
+            if (queue.Count == maxSize - 1)
+            {
+               // wake up any blocked enqueue
+               Monitor.PulseAll(queue);
+            }
+            return item;
+         }
+      }
 
-        bool closing;
-        public void Close()
-        {
-            lock (queue)
+      bool closing;
+      public void Close()
+      {
+         lock (queue)
+         {
+            closing = true;
+            Monitor.PulseAll(queue);
+         }
+      }
+      
+      public T peek()
+      {
+         lock (queue)
+         {
+            return queue.Peek();
+         }
+      }
+
+      public T get()
+      {
+         lock (queue)
+         {
+            if(queue.Count > 0 )
             {
-                closing = true;
-                Monitor.PulseAll(queue);
+               return queue.Dequeue();
             }
-        }
-        public bool TryDequeue(out T value)
-        {
-            lock (queue)
+            
+         }
+         return default(T);
+      }
+
+      public bool TryDequeue(out T value)
+      {
+         lock (queue)
+         {
+            while (queue.Count == 0)
             {
-                while (queue.Count == 0)
-                {
-                    if (closing)
-                    {
-                        value = default(T);
-                        return false;
-                    }
-                    Monitor.Wait(queue);
-                }
-                value = queue.Dequeue();
-                if (queue.Count == maxSize - 1)
-                {
-                    // wake up any blocked enqueue
-                    Monitor.PulseAll(queue);
-                }
-                return true;
+               if (closing)
+               {
+                  value = default(T);
+                  return false;
+               }
+               Monitor.Wait(queue);
             }
-        }
-    }
+            value = queue.Dequeue();
+            if (queue.Count == maxSize - 1)
+            {
+               // wake up any blocked enqueue
+               Monitor.PulseAll(queue);
+            }
+            return true;
+         }
+      }
+   }
 }

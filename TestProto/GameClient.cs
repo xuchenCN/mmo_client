@@ -12,17 +12,18 @@ namespace TestProto
 {
    class GameClient
    {
-      private BlockingQueue<ChannelMessage> accountQueue;
-      private BlockingQueue<ChannelMessage> terrainQueue;
-      private string host;
-      private int port;
+      public readonly BlockingQueue<ChannelMessage> accountQueue = new BlockingQueue<ChannelMessage>(8);
+      public readonly BlockingQueue<ChannelMessage> terrainQueue = new BlockingQueue<ChannelMessage>(1024);
+      public string host;
+      public int port;
+      public string ticket;
       private TcpClient channel;
      // private AccountCallback accountCallback;
       private IPEndPoint ip;
       private GameClientService service;
       private bool shouldRun;
       private Thread coreThread;
-      private static readonly Object _lock = new Object();
+      private static readonly System.Object _lock = new System.Object();
       private static GameClient instance;
 
       public static GameClient getInstance()
@@ -47,10 +48,8 @@ namespace TestProto
       }
 
 
-      public void Start(string host, int port)
+      public void Start()
       {
-         this.host = host;
-         this.port = port;
          //this.messageCallback = messageCallback;
          channel = new TcpClient();
          IPAddress ipAddress;
@@ -74,6 +73,24 @@ namespace TestProto
          coreThread.Start();
       }
 
+      public void Stop()
+      {
+        Console.WriteLine("Client Stop");
+        shouldRun = false;
+         coreThread.Interrupt();
+         if (channel != null)
+         {
+            channel.Close();
+         }
+      }
+
+
+
+      public void Finalize()
+      {
+         this.Stop();
+      }
+
       public bool isRunning() {
          return this.shouldRun;
       }
@@ -83,15 +100,6 @@ namespace TestProto
          return this.channel;
       }
 
-      public void setAccountQueue(BlockingQueue<ChannelMessage> accountQueue)
-      {
-         this.accountQueue = accountQueue;
-      }
-
-      public void setTerrainQueue(BlockingQueue<ChannelMessage> terrainQueue)
-      {
-         this.terrainQueue = terrainQueue;
-      }
 
       public void UserLogin(UserLoginRequest request)
       {
@@ -145,8 +153,10 @@ namespace TestProto
 
             //client.Client.ReceiveTimeout = 20;
 
-            while (shouldRun)
+            while (shouldRun && Thread.CurrentThread.IsAlive)
             {
+               //Console.WriteLine("IsAlive " + Thread.CurrentThread.IsAlive);
+               //UnityEngine.Debug.Log("IsAlive " + Thread.CurrentThread.IsAlive);
                try
                {
                   NetworkStream netStream = channel.GetStream();
@@ -157,7 +167,7 @@ namespace TestProto
                      //Have rest data
                      if (fullData != null)
                      {
-                        Console.WriteLine("rest data " + fullData.Length);
+                        //Console.WriteLine("rest data " + fullData.Length);
                         ms.Write(fullData, 0, fullData.Length);
                      }
 
@@ -208,11 +218,11 @@ namespace TestProto
                            long markPos = stream.Position;
 
                            int bodySize = (int)stream.ReadRawVarint32();
-                           Console.WriteLine("body size " + bodySize);
+                          // Console.WriteLine("body size " + bodySize);
                            //Validate message correct
                            if (bodySize <= 0 || bodySize > fullData.Length)
                            {
-                              Console.WriteLine("Wrong data !");
+                              //Console.WriteLine("Wrong data !");
                               continue;
                            }
 
@@ -223,13 +233,14 @@ namespace TestProto
                               byte[] body = stream.ReadRawBytes(bodySize);
 
                               //IMessageLite protoMes = null;
-
+                              Console.WriteLine((MessageRegistry)messageId);
                               switch (messageId)
                               {
                                  
                                  case (int)MessageRegistry.USERLOGINRESPONSE:
                                     if (this.accountQueue != null)
                                     {
+
                                        ChannelMessage _channelMessage = new ChannelMessage((MessageRegistry)messageId, UserLoginResponse.ParseFrom(body));
                                        this.accountQueue.Enqueue(_channelMessage);
                                     } 
@@ -294,7 +305,7 @@ namespace TestProto
 
                   }
 
-                  Thread.Sleep(500);
+                  Thread.Sleep(1);
                }
                catch (Exception e)
                {
@@ -302,6 +313,7 @@ namespace TestProto
                }
 
             }
+            Console.WriteLine("Thread exit!");
          }
       }
    }
